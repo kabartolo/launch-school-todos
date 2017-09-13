@@ -1,5 +1,6 @@
 require 'sinatra'
 require 'sinatra/reloader'
+require 'sinatra/content_for'
 require 'tilt/erubis'
 
 configure do
@@ -30,7 +31,7 @@ end
 get '/lists/:id' do
   id = params[:id].to_i
   @list = session[:lists][id]
-  
+
   erb :list, layout: :layout
 end
 
@@ -43,10 +44,42 @@ post '/lists' do
     erb :new_list, layout: :layout
   else
     session[:lists] << { name: list_name, todos: [] }
-    session[:id] += 1
     session[:success] = 'The list has been created.'
     redirect '/lists'
   end
+end
+
+# Render the edit list form
+get '/lists/:id/edit' do
+  id = params[:id].to_i
+  @list = session[:lists][id]
+
+  erb :edit_list, layout: :layout
+end
+
+# Edit an existing to do list
+post '/lists/:id' do
+  new_list_name = params[:list_name].strip
+  id = params[:id].to_i
+  @list = session[:lists][id]
+
+  error = error_for_list_name(new_list_name)
+  if error
+    session[:error] = error
+    erb :edit_list, layout: :layout
+  else
+    @list[:name] = new_list_name
+    session[:success] = 'The list name has been updated.'
+    redirect "/lists/#{id}"
+  end
+end
+
+post '/lists/:id/delete' do
+  id = params[:id].to_i
+  @list = session[:lists][id]
+  session[:lists].delete(@list)
+  session[:success] = 'The list has been deleted.'
+  redirect "/lists"
 end
 
 # Return an error message if the name is invalid. Return nil if name is valid.
