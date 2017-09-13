@@ -1,7 +1,7 @@
 <ul id="lists">
-  <% @lists.each do |list| %>
+  <% @lists.each_with_index do |list, id| %>
     <li>
-      <a> 
+      <a href="/lists/<%= id %>"> 
         <h2><%= list[:name] %></h2>
         <p><%= list[:todos].size %></p>
       </a>
