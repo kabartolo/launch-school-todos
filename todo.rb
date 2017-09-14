@@ -12,6 +12,34 @@ before do
   session[:lists] ||= []
 end
 
+helpers do
+  def todos_count(list)
+    list[:todos].size
+  end
+
+  def remaining_todos_count(list)
+    list[:todos].count { |todo| !todo[:completed] }
+  end
+
+  def list_completed?(list)
+    todos_count(list) > 0 && remaining_todos_count(list) == 0
+  end
+
+  def list_class(list)
+    "complete" if list_completed?(list)
+  end
+
+  def sort_lists(lists)
+    lists.sort_by { |list| list_completed?(list) ? 1 : 0 }
+         .each { |list| yield list, lists.index(list) }
+  end
+
+  def sort_todos(todos)
+    todos.sort_by { |todo| todo[:completed] ? 1 : 0 }
+         .each { |todo| yield todo, todos.index(todo) }
+  end
+end
+
 get '/' do
   redirect '/lists'
 end
@@ -29,8 +57,8 @@ get '/lists/new' do
 end
 
 # View list of todos
-get '/lists/:id' do
-  @list_id  = params[:id].to_i
+get '/lists/:list_id' do
+  @list_id  = params[:list_id].to_i
   @list = session[:lists][@list_id ]
 
   erb :list, layout: :layout
@@ -143,8 +171,7 @@ post '/lists/:list_id/complete_all' do
   @list[:todos].each do |todo|
     todo[:completed] = true
   end
-
-  session[:success] = 'The list has been updated.'
+  session[:success] = 'All todos have been completed.'
 
   redirect "/lists/#{@list_id}"
 end
