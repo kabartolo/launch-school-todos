@@ -110,14 +110,43 @@ end
 
 # Delete a todo from a list
 post '/lists/:list_id/todos/:todo_id/delete' do
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
   todo_id = params[:todo_id].to_i
-  list_id = params[:list_id].to_i
-  list = session[:lists][list_id]
-  list[:todos].delete_at(todo_id)
+
+  @list[:todos].delete_at(todo_id)
   session[:success] = 'The list has been deleted.'
 
-  redirect "/lists/#{list_id}"
+  redirect "/lists/#{@list_id}"
+end
 
+# Mark a todo item as complete or not complete
+post '/lists/:list_id/todos/:todo_id' do
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
+
+  todo_id = params[:todo_id].to_i
+  todo = @list[:todos][todo_id]
+  is_completed = params[:completed] == "true"
+
+  todo[:completed] = is_completed
+  session[:success] = 'The list has been updated.'
+
+  redirect "/lists/#{@list_id}"
+end
+
+# Mark all todos in a list as completed
+post '/lists/:list_id/complete_all' do
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
+
+  @list[:todos].each do |todo|
+    todo[:completed] = true
+  end
+
+  session[:success] = 'The list has been updated.'
+
+  redirect "/lists/#{@list_id}"
 end
 
 # Return an error message if the list name is invalid. Return nil if name is valid.

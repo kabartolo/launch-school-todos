@@ -2,15 +2,29 @@
   <header>
     <h2><%= @list[:name] %></h2>
     <ul>
-      <li><a class="edit" href="/lists/<%= @list_id  %>/edit">Edit List</a></li>
+      <li>
+        <form action="/lists/<%= @list_id %>/complete_all" method="post">
+            <button class="check" type="submit">Complete All</button>
+        </form>
+        <a class="edit" href="/lists/<%= @list_id  %>/edit">Edit List</a>
+      </li>
     </ul>
   </header>
 
   <ul>
-    <% @list[:todos].each_with_index do |todo, id| %>
-      <li>
+    <% @list[:todos].each_with_index do |todo, todo_id| %>
+      
+      <% class_name = todo[:completed] ? "complete" : "" %>
+      <li class=<%= class_name %>>
+        
+        <form action="/lists/<%= @list_id %>/todos/<%= todo_id %>" method="post" class="check">
+          <input type="hidden" name="completed" value="<%= !todo[:completed] %>" />
+
+          <button type="submit">Complete</button>
+        </form>
+        
         <h3><%= todo[:name] %></h3>
-        <form action="/lists/<%= @list_id %>/todos/<%= id %>/delete" method="post" class="delete">
+        <form action="/lists/<%= @list_id %>/todos/<%= todo_id %>/delete" method="post" class="delete">
           <button type="submit">Delete</button>
         </form>
       </li>
@@ -33,5 +47,5 @@
 </form>
 
 <% content_for :header_links do %>
-  <a href="/lists">All lists</a>
+  <a class="list" href="/lists">All lists</a>
 <% end %>
